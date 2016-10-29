@@ -1,15 +1,12 @@
 # coding=utf-8
 from bs4 import BeautifulSoup
-from PIL import Image
-from StringIO import StringIO
-import csv
 import os
 import re
 import requests
 import urlparse
 import time
 
-DELAY = 5  # Seconds
+DELAY = 1  # Seconds
 DATADIR = "data/"
 PAGEDIR = "./pages/"
 
