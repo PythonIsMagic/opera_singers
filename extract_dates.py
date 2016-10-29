@@ -73,31 +73,35 @@ def parse_dates(text):
     # Try to parse out the dates
     parsed_dates = []
     for d in dates:
+        components = d.split()
 
-        try:
-            components = d.split()
-
-            if len(components) == 0:
-                # Nothing to parse, and we don't want to add a placeholder
+        # Check for strange combos of years/
+        if len(components) == 0:
+            # Nothing to parse, and we don't want to add a placeholder
+            continue
+        if len(components) == 1:
+            # We only have the year - is it a complete year? (4 digits?)
+            year = components[0].strip()
+            if len(year) != 4:
+                # We'll ignore it since it's probably unreliable
+                parsed_dates.append(None)
                 continue
-            if len(components) == 1:
-                # We only have the year - is it a complete year? (4 digits?)
-                year = components[0].strip()
-                if len(year) != 4:
-                    # We'll ignore it since it's probably unreliable
-                    parsed_dates.append(None)
-                    continue
 
-            date = parser.parse(d, default=DFLT_DATE)
-            parsed_dates.append(str(date.date()))
+        parsed_dates.append(safe_parse(d))
 
-        except ValueError as e:
-            print('{} could not be parsed: {}'.format(d, e))
-            # If we have stuff separated by long dashes, we'll assume it's probably a date, but
-            # we just can't figure out exactly what it is, so we'll add None as a placeholder.
-            parsed_dates.append(None)
-            pass
     return parsed_dates
+
+
+def safe_parse(d):
+    try:
+        date = parser.parse(d, default=DFLT_DATE)
+        date = str(date.date())
+        return date
+    except ValueError as e:
+        print('{} could not be parsed: {}'.format(d, e))
+        # If we have stuff separated by long dashes, we'll assume it's probably a date, but
+        # we just can't figure out exactly what it is, so we'll add None as a placeholder.
+        return None
 
 
 def scan_infoboxes(soup):
