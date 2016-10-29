@@ -116,12 +116,14 @@ def scan_infoboxes(soup):
         # Try looking for the span with 'bday' class first
         bday_span = infobox.find('span', {'class': 'bday'})
         if bday_span:
-            bday = str(parser.parse(bday_span.text, default=DFLT_DATE).date())
+            #  bday = str(parser.parse(bday_span.text, default=DFLT_DATE).date())
+            bday = safe_parse(bday_span.text)
 
         dday_span = infobox.find('span', {'class': 'dday'})
         if dday_span:
             #  dday = parse_dates(dday_span.text)
-            dday = str(parser.parse(dday_span.text, default=DFLT_DATE).date())
+            #  dday = str(parser.parse(dday_span.text, default=DFLT_DATE).date())
+            dday = safe_parse(dday_span.text)
 
         # Try regex
         if not bday:
