@@ -1,4 +1,5 @@
 import lxml.etree as etree
+import scrapekit
 from opera_singers import Singer
 
 FILENAME = 'data/singers.xml'
@@ -52,6 +53,7 @@ def make_xml(filename, singers):
     text = etree.tostring(root, pretty_print=True)
     print(text)
 
+    scrapekit.ensure_dir('data/')
     with open(filename, 'w') as f:
         f.write(text)
 
