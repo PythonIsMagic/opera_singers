@@ -1,17 +1,22 @@
 import lxml.etree as etree
 import scrapekit
 from opera_singers import Singer
+"""
+  " Manages the XML creation for singer data.
+  """
 
 FILENAME = 'data/singers.xml'
 
 
 def dummydata():
+    """ Just some sample data to test with. """
     s1 = Singer('Ekkehard', 'Abele', 'Operatic bass-baritone', 'Unknown', 'n/a', 'n/a')
     s2 = Singer('Theo', 'Adam', 'Operatic bass-baritone', '1 August 1926', 'n/a', 'n/a')
     return [s1, s2]
 
 
 def make_xml(filename, singers):
+    """ Creates the actual XML file from the singer data."""
     root = etree.Element('root')
     doc = etree.SubElement(root, 'doc')
 

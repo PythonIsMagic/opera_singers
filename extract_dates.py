@@ -1,4 +1,8 @@
 # coding=utf-8
+"""
+  " This module contains tools for parsing out the correct birth and death dates
+  " of a person's biography
+  """
 import re
 import datetime
 import calendar
@@ -11,6 +15,10 @@ DFLT_DATE = datetime.datetime(9999, 01, 01)
 
 
 def extract_parens(text):
+    """ Looks through a string and extracts all text contained in parentheses,
+        and returns a list with a string for each parentheses found. Discards
+        the parens.
+    """
     #  Stackoverflow: re.findall('\(.*?\)',s)
     #  parens = re.findall(r'\(.*?\)+', text)    # This keeps the outer parens
 
@@ -20,9 +28,7 @@ def extract_parens(text):
 
 
 def is_integer(num):
-    """
-    Returns True if the num argument is an integer, and False if it is not.
-    """
+    """ Returns True if the num argument is an integer, and False if it is not. """
     try:
         num = float(num)
     except:
@@ -32,6 +38,9 @@ def is_integer(num):
 
 
 def date_component(text):
+    """ Returns True if the string is a valid part of a date - like a number,
+        separator, or month.
+    """
     if is_integer(text):
         return True
     elif text in VALID:
@@ -43,6 +52,7 @@ def date_component(text):
 
 
 def clean_string(text):
+    """ Takes a string a parses out any junk that isn't relavant to a date. """
     NOISE = ['.', ',', ';', '?', '\xc2\xa0']
     for n in NOISE:
         text = text.replace(n, ' ')
@@ -65,6 +75,12 @@ def clean_string(text):
 
 
 def parse_dates(text):
+    """ Takes a piece of text that has been extracted from parens and cleaned,
+        and attempts to figure out what the birth and death dates are. Can take
+        many different date formats.
+
+        Returns all the valid dates found.
+    """
     # The default date fields - year is rediculous(9999) so it stands out.
     # Otherwise we use the first month and day as defaults. (Since we don't have requirements)
 
@@ -93,6 +109,7 @@ def parse_dates(text):
 
 
 def safe_parse(d):
+    """ This is just a wrapper around dateutil's parser, to handle exceptions. """
     try:
         date = parser.parse(d, default=DFLT_DATE)
         date = str(date.date())
@@ -105,9 +122,7 @@ def safe_parse(d):
 
 
 def scan_infoboxes(soup):
-    """
-    Check if there is an infobox table,
-    """
+    """ Check if there is an infobox table. """
     bday, dday = None, None
     # Check for the infobox,
     infobox = soup.find('table', {'class': 'infobox'})
@@ -135,6 +150,7 @@ def scan_infoboxes(soup):
 
 
 def find_box_text(infobox, text):
+    """ Check the Wikipedia page for an infobox and attempt to parse the date from it. """
     # Try regex
     result = infobox.find(text=re.compile(text))
     try:
@@ -154,6 +170,12 @@ def find_box_text(infobox, text):
 
 
 def parse_parentheses(text):
+    """ Attempts to parse dates from parentheses found in a paragraph.
+        If we only find one, we'll double check if it's the birth or death date.
+        If we get two, that's good and normal.
+        If we get three or more, than that's not normal, but we'll default to
+        the first two.
+    """
     parens = extract_parens(text)
     dates = []
 
@@ -185,12 +207,15 @@ def parse_parentheses(text):
 
 
 def parse_text(text):
-    # Try to parse the test for 'born' and 'died'
+    """ Try to parse the test for 'born' and 'died' """
     born_i = text.find('born')
     died_i = text.find('died')
 
-    # This section operates largely on the assumption that a birth date will follow the word "born YMD", and
-    # that "died YMD" will follow after the born date in a block of text.
+    """ This section operates largely on the assumption that a birth date will
+        follow the word "born YMD", and that "died YMD" will follow after the born
+        date in a block of text.
+    """
+
     try:
         if died_i >= 0:
             # Don't want conflict with death date.
@@ -211,7 +236,7 @@ def parse_text(text):
 
 
 def clean_initials(text):
-    # Fix initials with period - wipe out the period
+    """ Fix initials with period - wipe out the period """
     #  initials = re.findall(r'\b([A-Z][.])+', text)
     initials = re.findall(r'\b([A-Z][.])', text)
 
@@ -223,6 +248,9 @@ def clean_initials(text):
 
 
 def get_first_sentence(text):
+    """ Finds the first sentence in a paragraph or block of text, because that is
+        where a person's birth and death date is most likely to occur.
+    """
     # Expand b. -> born
     text = text.replace('b.', 'born')
 
@@ -246,12 +274,11 @@ def get_first_sentence(text):
 
 
 def extract(text):
+    """ Extracts the dates from a block of text. Try to see if there are
+        parentheses in the first sentence first. If there is a parentheses with a
+        date/year in it after the first sentence, it is MUCH LESS likely to be a
+        birth or death date.
     """
-    Extracts the dates from a block of text.
-    """
-    # Try to see if there are parentheses in the first sentence first.
-    # If there is a parentheses with a date/year in it after the first sentence, it is MUCH LESS
-    # likely to be a birth or death date.
     sentence1 = get_first_sentence(text)
     dates = parse_parentheses(sentence1)
 
